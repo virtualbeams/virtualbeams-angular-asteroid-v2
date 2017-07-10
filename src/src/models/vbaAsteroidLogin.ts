@@ -24,6 +24,10 @@ export function resumeLogin() {
       }
       return { resume };
     })
-    .then(this.login.bind(this))
-    .catch(onLogout.bind(this));
+    .then((res) => {
+      this.login.bind(this);
+    })
+    .catch((err) => {
+      onLogout.bind(this);
+    });
 }

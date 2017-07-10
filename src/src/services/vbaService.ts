@@ -59,15 +59,16 @@ export class VbaService {
 
   public getExtraData(extra: any) {
     let asteroid = this.asteroid;
-    let key;
+    let key, res;
 
     if (extra === true) {
-      key = asteroid._host + '__' + asteroid._instanceId + '__login_token__';
+      return asteroid.getLoginToken();
     } else if (extra !== false) {
       key = extra;
+      res = localStorage[key];
     }
 
-    return localStorage[key];
+    return res;
   };
 
   public get() {
@@ -129,9 +130,9 @@ export class VbaService {
         sendLogin.username = config.usernameOrEmail;
       }
 
-      let promise = this.asteroid.vbaLoginWithPassword(sendLogin);
+      let promise = this.asteroid.loginWithPassword(sendLogin);
 
-      // this.listenForResults(this.vbaConfig._loginMethod, deferred);
+      this.listenForResults(this.vbaConfig._loginMethod, reject);
 
       try {
         promise.then((data) => {
@@ -149,13 +150,15 @@ export class VbaService {
   }
 
   public logout() {
+
     return new Promise((resolve, reject) => {
 
       let promise = this.asteroid.logout();
 
-      // this.listenForResults(this.vbaConfig._logoutMethod, deferred);
+      this.listenForResults(this.vbaConfig._logoutMethod, reject);
 
       promise.then(() => {
+
         this.vbaUtils.log(this.LOGOUT);
         resolve();
       }, (err) => {
@@ -169,22 +172,25 @@ export class VbaService {
   public call(method: string, data: any = {}, config?: IConfigSuscribe): Promise<any> {
     return new Promise((resolve, reject) => {
       let extraData = !config ? this.vbaConfig._extraData : config.extraData;
-      let loginRequired = !config ? this.vbaConfig._loginRequiredInCalls : !config.loginRequired ? this.vbaConfig._loginRequiredInCalls : config.loginRequired;
+      let loginRequired = !config ?
+        this.vbaConfig._loginRequiredInCalls : !config.loginRequired ?
+          this.vbaConfig._loginRequiredInCalls : config.loginRequired;
 
-      if (extraData) {
-        data.extra = this.getExtraData(extraData);
-      }
+      this.getExtraData(extraData).then(extra => {
+        data.extraData = extra;
 
-      this.listenForResults(method, reject);
+        this.listenForResults(method, reject);
 
-      this.loginPromise(loginRequired).then(() => {
-        return this.asteroid.call(method, data);
-      }).then((result) => {
-        this.vbaUtils.log(method, result);
-        resolve(result);
-      }).catch((err) => {
-        this.vbaUtils.error(method, err);
-        reject(err);
+        this.loginPromise(loginRequired).then(() => {
+          return this.asteroid.call(method, data);
+        }).then((result) => {
+          this.vbaUtils.log(method, result);
+          resolve(result);
+        }).catch((err) => {
+          this.vbaUtils.error(method, err);
+          reject(err);
+        });
+
       });
 
     });
@@ -197,33 +203,32 @@ export class VbaService {
     let loginRequired = !config.loginRequired ? this.vbaConfig._loginRequiredInSubscribes : config.loginRequired;
     config.params = config.params || {};
 
-    if (sendExtraData) {
-      config.params.extraData = this.getExtraData(sendExtraData);
-    }
 
-    this.loginPromise(loginRequired).then(() => {
-      let subscription = this.asteroid.subscribe(config.nameSubscribe, config.params);
-      let observable: ISuscriptionObservable = {
-        suscription: subscription,
-        event: event,
-        config: config
-      };
+    this.getExtraData(sendExtraData).then((extraData) => {
+      config.params.extraData = extraData;
+      this.loginPromise(loginRequired).then(() => {
+        let subscription = this.asteroid.subscribe(config.nameSubscribe, config.params);
+        let observable: ISuscriptionObservable = {
+          suscription: subscription,
+          event: event,
+          config: config
+        };
 
-      this.subscribeObservables[subscribeName] = observable;
+        this.subscribeObservables[subscribeName] = observable;
 
-        subscription.on('ready', () => {
-          console.log(this.asteroid);
+        // subscription.on('ready', () => {
+        // });
+
+        subscription.on('error', (err) => {
+          this.vbaUtils.error(subscribeName, err);
+          delete this.subscribeObservables[subscribeName];
         });
 
-      subscription.on('error', (err) => {
-        this.vbaUtils.error(subscribeName, err);
-        delete this.subscribeObservables[subscribeName];
+        return subscription.ready;
+      }).then(() => {
+        this.vbaUtils.log(subscribeName, this.SUBSCRIBE);
       });
-
-      return subscription.ready;
-    }).then(() => {
-      this.vbaUtils.log(subscribeName, this.SUBSCRIBE);
-    });
+    }).catch(err => console.error());
 
     return event;
   }
@@ -245,7 +250,7 @@ export class VbaService {
     if (subscribeObservable) {
       let idSubscription = subscribeObservable.suscription.id;
       this.asteroid.unsubscribe(idSubscription);
-      this.subscribeObservables[nameSubscription].unsubscribe();
+      // this.subscribeObservables[nameSubscription].unsubscribe();
       delete this.subscribeObservables[nameSubscription];
       this.vbaUtils.log(nameSubscription, this.STOPPED);
     }
@@ -262,7 +267,7 @@ export class VbaService {
     return string.indexOf('@') !== -1;
   }
 
-  private notify(subscribeName: string, config: any, eventEmmiter: EventEmitter<any> , result: Array<any>) {
+  private notify(subscribeName: string, config: any, eventEmmiter: EventEmitter<any>, result: Array<any>) {
     if (typeof config.filter === 'function') {
       result = config.filter(result);
     }
@@ -292,7 +297,6 @@ export class VbaService {
         if (!subscribeObservable.config.notifyEvents) {
           let data = collectionMap.toJS();
           let values = ObjectValues(data);
-          console.log(values);
           this.notify(collection, subscribeObservable.config, subscribeObservable.event, values);
         } else {
           let value;

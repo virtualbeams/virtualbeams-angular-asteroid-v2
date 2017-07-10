@@ -1,20 +1,18 @@
-import { NativeStorage } from '@ionic-native/native-storage';
+import { Storage } from '@ionic/storage';
 
 const genericStorage = {};
-const nativeStorage = new NativeStorage();
+const storage = new Storage({});
 
 
 export function get(key) {
   return new Promise((resolve, reject) => {
-    if (typeof localStorage !== 'undefined') {
-      resolve(localStorage.getItem(key));
-    } else if (typeof localStorage !== 'undefined') {
-      resolve(localStorage[key]);
-    } else if (nativeStorage) {
-      nativeStorage.getItem(key).then(
+    if (storage) {
+      storage.get(key).then(
         data => resolve(data),
         err => reject(err)
       );
+    } else if (typeof localStorage !== 'undefined') {
+      resolve(localStorage[key]);
     } else {
       resolve(genericStorage[key]);
     }
@@ -23,17 +21,14 @@ export function get(key) {
 
 export function set(key, value) {
   return new Promise((resolve, reject) => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(key, value);
-      resolve();
-    } else if (typeof localStorage !== 'undefined') {
-      localStorage[key] = value;
-      resolve();
-    } else if (nativeStorage) {
-      nativeStorage.setItem(key, value).then(
+    if (storage) {
+      storage.set(key, value).then(
         () => resolve(),
         err => reject(err)
       );
+    } else if (typeof localStorage !== 'undefined') {
+      localStorage[key] = value;
+      resolve();
     } else {
       genericStorage[key] = value;
       resolve();
@@ -43,17 +38,14 @@ export function set(key, value) {
 
 export function del(key) {
   return new Promise((resolve, reject) => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(key);
-      resolve();
-    } else if (typeof localStorage !== 'undefined') {
-      delete localStorage[key];
-      resolve();
-    } else if (nativeStorage) {
-      nativeStorage.remove(key).then(
+    if (storage) {
+      storage.remove(key).then(
         () => resolve(),
         err => reject(err)
       );
+    } else if (typeof localStorage !== 'undefined') {
+      delete localStorage[key];
+      resolve();
     } else {
       delete genericStorage[key];
       resolve();

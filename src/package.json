@@ -20,7 +20,7 @@
   "typings": "virtualbeams-angular-asteroid-v2.d.ts",
   "peerDependencies": {
     "@angular/core": "^4.0.0",
-    "@ionic-native/native-storage": "^3.12.1",
+    "@ionic/storage": "^2.0.1",
     "asteroid": "^2.0.3",
     "asteroid-immutable-collections-mixin": "^3.0.0",
     "object.values": "^1.0.4",
