@@ -1,0 +1,4 @@
+/**
+ * @license virtualbeams-angular-asteroid-v2
+ * MIT license
+ */
