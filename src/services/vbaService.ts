@@ -167,10 +167,10 @@ export class VbaService {
    */
   public login(config: IConfigLogin): Promise<any> {
     return new Promise((resolve, reject) => {
-      const sendLogin = {
+      const sendLogin: { password: any, email: any, username: any } = {
         password: config.password,
-        email: '',
-        username: ''
+        email: undefined,
+        username: undefined
       };
 
       const isEmail = this.isEmail(config.usernameOrEmail);
@@ -206,7 +206,7 @@ export class VbaService {
 
       const promise: Promise<any> = this.asteroid.logout();
 
-      this.listenForResults(this.vbaConfigConst.logoutMethod || 'logout' , reject);
+      this.listenForResults(this.vbaConfigConst.logoutMethod || 'logout', reject);
 
       promise.then(() => {
 

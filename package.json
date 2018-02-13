@@ -1,7 +1,7 @@
 {
   "name": "virtualbeams-angular-asteroid-v2",
   "private": true,
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "",
   "main": "./bundles/virtualbeams-angular-asteroid-v2.umd.js",
   "module": "./esm5/virtualbeams-angular-asteroid-v2.js",
