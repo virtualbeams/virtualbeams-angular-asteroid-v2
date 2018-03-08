@@ -6,7 +6,7 @@ import { VbaUtils } from '../services/vbaUtils';
 import { VbaConfigConst } from '../config/vbaConfig';
 import { VBAsteroid } from '../models/vbaAsteroid';
 import { Map } from 'immutable';
-import { ISuscriptionObservable, IConfigSuscribe, IConfigLogin, IConfigCall } from '../models/vbaISuscriptionObservable';
+import { ISubscriptionObservable, IConfigSubscribe, IConfigLogin, IConfigCall } from '../models/vbaISubscriptionObservable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
 const ADDED = 'added';
@@ -231,7 +231,9 @@ export class VbaService {
           this.vbaConfigConst.loginRequiredInCalls : config.loginRequired) || false;
 
       this.getExtraData(extraData).then(extra => {
-        data.extraData = extra;
+        if (extraData) {
+          data.extraData = extra;
+        }
 
         this.listenForResults(method, reject);
 
@@ -271,7 +273,7 @@ export class VbaService {
     });
   }
 
-  public subscribe(config: IConfigSuscribe): EventEmitter<any> {
+  public subscribe(config: IConfigSubscribe): EventEmitter<any> {
     const event = new EventEmitter();
     const subscribeName = config.nameSubscribe;
     const sendExtraData = this.vbaConfigConst.extraData || config.extraData;
@@ -283,8 +285,8 @@ export class VbaService {
       config.params.extraData = extraData;
       this.loginPromise(loginRequired).then(() => {
         const subscription = this.asteroid.subscribe(config.nameSubscribe, config.params);
-        const observable: ISuscriptionObservable = {
-          suscription: subscription,
+        const observable: ISubscriptionObservable = {
+          subscription: subscription,
           event: event,
           config: config
         };
@@ -324,7 +326,7 @@ export class VbaService {
   public stopOnlySubscription(nameSubscription: string) {
     const subscribeObservable = this.subscribeObservables[nameSubscription];
     if (subscribeObservable) {
-      const idSubscription = subscribeObservable.suscription.id;
+      const idSubscription = subscribeObservable.subscription.id;
       this.asteroid.unsubscribe(idSubscription);
       // this.subscribeObservables[nameSubscription].unsubscribe();
       delete this.subscribeObservables[nameSubscription];
@@ -366,7 +368,7 @@ export class VbaService {
 
   private listenForChanges() {
     this.asteroid.on('collections:change', (event: string, collection: string, _id: string) => {
-      const subscribeObservable: ISuscriptionObservable = this.subscribeObservables[collection];
+      const subscribeObservable: ISubscriptionObservable = this.subscribeObservables[collection];
 
       if (subscribeObservable) {
         const collectionMap: Map<any, any> = this.asteroid.collections.get(collection);

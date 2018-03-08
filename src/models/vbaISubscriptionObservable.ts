@@ -1,17 +1,17 @@
 import { EventEmitter } from '@angular/core';
 
 /**
- * subscriptiion observable
+ * subscription observable
  */
-export interface ISuscriptionObservable {
+export interface ISubscriptionObservable {
   /**
    * configuration of subscription
    */
-  config: IConfigSuscribe;
+  config: IConfigSubscribe;
   /**
    * name of subscription
    */
-  suscription: any;
+  subscription: any;
   /**
    * event emmiter of subscription
    */
@@ -21,9 +21,9 @@ export interface ISuscriptionObservable {
 /**
  * configuration of subscription
  */
-export interface IConfigSuscribe {
+export interface IConfigSubscribe {
   /**
-   * name of subscribtion
+   * name of subscription
    */
   nameSubscribe: string;
   /**
@@ -31,7 +31,7 @@ export interface IConfigSuscribe {
    */
   nameCollection?: string;
   /**
-   * params of subscribtion
+   * params of subscription
    */
   params?: any;
   /**
@@ -65,7 +65,7 @@ export interface IConfigCall {
    */
   loginRequired?: boolean;
   /**
-   * put aditional data
+   * put additional data
    */
   extraData?: any;
 }

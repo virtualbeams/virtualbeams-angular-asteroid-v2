@@ -1,7 +1,5 @@
 export function vbaRestartSubscriptions() {
 
-
-
   /*
   *   Private methods: they are invoked with the asteroid instance as context, but
   *   they are not exported so they don't clutter the Asteroid class prototype.
