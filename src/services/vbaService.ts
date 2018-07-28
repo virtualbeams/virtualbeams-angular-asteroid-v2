@@ -200,23 +200,26 @@ export class VbaService {
     });
   }
 
-  public logout() {
-
+  public async logout() {
     return new Promise((resolve, reject) => {
+      const hasExtraData = this.checkExtraDataEnabled();
 
-      const promise: Promise<any> = this.asteroid.logout();
+      this.getExtraData(hasExtraData).then(extraData => {
+        if (hasExtraData) {
+          const promise: Promise<any> = this.asteroid.logout({ extraData });
 
-      this.listenForResults(this.vbaConfigConst.logoutMethod || 'logout', reject);
+          this.listenForResults(this.vbaConfigConst.logoutMethod || 'logout', reject);
 
-      promise.then(() => {
-
-        this.vbaUtils.log(LOGOUT);
-        resolve();
-      }, (err: any) => {
-        this.vbaUtils.error(err);
-        reject(err);
-      });
-
+          promise.then(() => {
+            this.vbaUtils.log(LOGOUT);
+            resolve();
+          }, (err: any) => {
+            this.vbaUtils.error(err);
+            reject(err);
+          });
+        }
+      })
+        .catch(reject);
     });
   }
 
@@ -225,10 +228,8 @@ export class VbaService {
       data = {};
     }
     return new Promise((resolve, reject) => {
-      const extraData = !config ? this.vbaConfigConst.extraData : config.extraData;
-      const loginRequired: boolean = (!config ?
-        this.vbaConfigConst.loginRequiredInCalls : config.loginRequired ?
-          this.vbaConfigConst.loginRequiredInCalls : config.loginRequired) || false;
+      const extraData = this.checkExtraDataEnabled(config);
+      const loginRequired = this.checkLoginRequiredEnabled(config);
 
       this.getExtraData(extraData).then(extra => {
         if (extraData) {
@@ -394,6 +395,20 @@ export class VbaService {
         reject(result.error);
       }
     });
+  }
+
+  private checkExtraDataEnabled(config?: IConfigCall | IConfigSubscribe): boolean {
+    return !config ? this.vbaConfigConst.extraData : config.extraData;
+  }
+
+  private checkLoginRequiredEnabled(config?: IConfigCall): boolean {
+    return (!config ?
+      this.vbaConfigConst.loginRequiredInCalls : config.loginRequired ?
+        this.vbaConfigConst.loginRequiredInCalls : config.loginRequired) || false;
+  }
+
+  private checkLoginRequiredInSubsEnabled(config: IConfigSubscribe): boolean {
+    return (!config.loginRequired ? this.vbaConfigConst.loginRequiredInSubscribes : config.loginRequired) || false;
   }
 
 }

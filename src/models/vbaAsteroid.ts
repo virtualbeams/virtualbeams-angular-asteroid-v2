@@ -147,10 +147,11 @@ export class VBAsteroid extends Asteroid {
   /**
   * logout call asteroid method to logout
   * @member VbaAsteroid#logout
+  * @param data {any} this is used to send metadata, in this case is the extra data
   * @returns void promise
   */
-  public logout(): Promise<any> {
-    return super.call(this.logoutMethod).then(onLogout.bind(this));
+  public logout(data?: any): Promise<any> {
+    return super.call(this.logoutMethod, data).then(onLogout.bind(this));
   }
 
   /**
